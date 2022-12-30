@@ -1,5 +1,5 @@
 # HYU-Capston-Project
-Research field: Computer Vision \n
+Research field: Computer Vision  
 Keywords: Object detection, Inpainting
 
 ## Collaborators
