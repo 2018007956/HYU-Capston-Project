@@ -3,11 +3,11 @@ Research field: Computer Vision
 Keywords: Object detection, Inpainting
 
 ## Collaborators
-2016024939 이상진
+2016024939 이상진  
 2018007956 김채아
 
 ## Duration
-2022.08 ~ 2023.05
+2022.08 ~ 2023.05  
 2023.05 1차 평가
 
 ## Subject
