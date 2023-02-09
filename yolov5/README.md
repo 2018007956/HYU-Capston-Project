@@ -1,3 +1,14 @@
+```
+cd yolov5
+pip install -r requirements.txt
+
+# 방 정리
+python segment/predict.py --weights ./weights/yolov5x-weg.pt --source {IMAGE_PATH} --conf {0.1} --data data/coco128-seg.yaml
+
+# 관광지 사진
+python segment/predict_person.py --weights ./weights/yolov5x-seg.pt --source {IMAGE_PATH} --conf {0.1} --data data/coco128-seg.yaml
+```
+
 <div align="center">
   <p>
     <a align="center" href="https://ultralytics.com/yolov5" target="_blank">

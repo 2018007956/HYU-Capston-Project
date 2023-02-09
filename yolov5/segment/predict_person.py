@@ -57,9 +57,9 @@ from utils.torch_utils import select_device, smart_inference_mode
 
 @smart_inference_mode()
 def run(
-    weights=ROOT / 'yolov5s-seg.pt',  # model.pt path(s)
+    weights=ROOT / 'yolov5x-seg.pt',  # model.pt path(s)
     source=ROOT / 'data/images',  # file/dir/URL/glob/screen/0(webcam)
-    data=ROOT / 'data/coco128.yaml',  # dataset.yaml path
+    data=ROOT / 'data/coco128-seg-person.yaml',  # dataset.yaml path
     imgsz=(640, 640),  # inference size (height, width)
     conf_thres=0.25,  # confidence threshold
     iou_thres=0.45,  # NMS IOU threshold
@@ -158,13 +158,11 @@ def run(
             if len(det):
                 masks = process_mask(proto[i], det[:, 6:], det[:, :4], im.shape[2:], upsample=True)  # HWC
                 det[:, :4] = scale_boxes(im.shape[2:], det[:, :4], im0.shape).round()  # rescale boxes to im0 size
-                # print(len(det))
-                # print(det.shape)
-                # print('det', det[:, :4])
-                det_size = [int((det_[2]-det_[0])*(det_[3]-det_[1])) for det_ in det]
+                
+                # 면적이 가장 큰 바운딩박스 
+                det_size = [int((det_[2]-det_[0])*(det_[3]-det_[1])) for det_, name in zip(det, det[:, 5]) if names[int(name)] == 'person']
                 max_arg = np.argmax(det_size)
                 det_max = det_size[max_arg]
-                # print(max_arg)
 
                 # Segments
                 if save_txt:
@@ -181,46 +179,12 @@ def run(
                                 colors=[colors(x, True) for x in det[:, 5]],
                                 im_gpu=None if retina_masks else im[i])
 
-#############################################################################################################################
-
-                # Create mask image
-                # not_used = ['chair', 'bottle', 'dining table', 'toilet']
-                not_used = ['person']
-                # used = ['chair', 'couch', 'bed', 'dining table', 'toilet', 'tv', 'laptop', 'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'clock']
-                # not_used = ['']
-
-                with open(data) as f:
-                    names = yaml.load(f, Loader=yaml.FullLoader)['names']
-
-                print(masks)
-
-                if len(masks != 0):
-                    masked = torch.zeros([masks[0].shape[0], masks[0].shape[1]])
-                    for mask, det_size, det_ in zip(masks, det[:, :4], det[:, 5]):
-                        if names[int(det_)] in not_used:
-                        # if names[int(det_)] not in used:
-                            if not abs((det_size[2]-det_size[0])*(det_size[3]-det_size[1]) - det_max) < 5:
-                                masked += mask
-
-                    # save original image to resized image
-                    img = Image.open(source)
-                    source = source if '/' not in source else source.split('/')[1]
-                    source_without_extension = source.split('.')[0]
-                    img_resize = img.resize((masks[0].shape[1], masks[0].shape[0]))
-                    img_resize.save(f'{save_dir}/_{source_without_extension}.png')
-
-                    tf = T.ToPILImage()
-                    img_t = tf(masked)
-                    img_t.save(f'{save_dir}/_{source_without_extension}_mask.png')
-
-                    # save_dir_ = 'livingroom_result'
-                    # img_resize.save(f'{save_dir_}/original/{source_without_extension}.png')
-                    # img_t.save(f'{save_dir_}/masked/{source_without_extension}_mask.png')
-
-#############################################################################################################################
+                # 사람 바운딩박스 인식할 수 있는 숫자 표기
+                person_index = 1
 
                 # Write results
-                for j, (*xyxy, conf, cls) in enumerate(reversed(det[:, :6])):
+                for j, (*xyxy, conf, cls) in enumerate(det[:, :6]):
+                    # print(j, *xyxy, conf, cls)
                     if save_txt:  # Write to file
                         segj = segments[j].reshape(-1)  # (n,2) to (n*2)
                         line = (cls, *segj, conf) if save_conf else (cls, *segj)  # label format
@@ -230,10 +194,75 @@ def run(
                     if save_img or save_crop or view_img:  # Add bbox to image
                         c = int(cls)  # integer class
                         label = None if hide_labels else (names[c] if hide_conf else f'{names[c]} {conf:.2f}')
-                        annotator.box_label(xyxy, label, color=colors(c, True))
+                        if label.split(' ')[0] == 'person':
+                            label = str(person_index)
+                            person_index += 1
+                            annotator.box_label(xyxy, label, color=colors(c, True))
                         # annotator.draw.polygon(segments[j], outline=colors(c, True), width=3)
                     if save_crop:
                         save_one_box(xyxy, imc, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg', BGR=True)
+
+
+############################## 사용자가 직접 남길 사람 선택하는 부분 START ##############################
+# python segment/predict_person.py --weights ./weights/yolov5x-seg.pt --source IMG_PATH --conf 0.1 --data data/coco128-seg.yaml
+
+                # 이부분은 아래에 save_img 부분 복붙한거
+                if save_img:
+                    if dataset.mode == 'image':
+                        cv2.imwrite(save_path, im0)
+                    else:  # 'video' or 'stream'
+                        if vid_path[i] != save_path:  # new video
+                            vid_path[i] = save_path
+                            if isinstance(vid_writer[i], cv2.VideoWriter):
+                                vid_writer[i].release()  # release previous video writer
+                            if vid_cap:  # video
+                                fps = vid_cap.get(cv2.CAP_PROP_FPS)
+                                w = int(vid_cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+                                h = int(vid_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+                            else:  # stream
+                                fps, w, h = 30, im0.shape[1], im0.shape[0]
+                            save_path = str(Path(save_path).with_suffix('.mp4'))  # force *.mp4 suffix on results videos
+                            vid_writer[i] = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
+                        vid_writer[i].write(im0)
+
+
+                if len(masks != 0):
+                    masked = torch.zeros([masks[0].shape[0], masks[0].shape[1]])
+
+                    print('1: 제일 큰 사람만 남기고 나머지 다 지우기')
+                    print('2: 남길 사람 직접 선택')
+                    option_ = int(input('Option: '))
+
+                    if option_ == 1:
+                        # 이미지에서 마스킹 면적이 가장 큰 사람 빼고 다 마스킹하기
+                        for mask, det_size, det_ in zip(masks, det[:, :4], det[:, 5]):
+                            if names[int(det_)] == 'person':
+                                if not abs((det_size[2]-det_size[0])*(det_size[3]-det_size[1]) - det_max) < 5:
+                                    masked += mask
+                    elif option_ == 2:
+                        # 남길 사람 직접 선택
+                        masked_arr = []
+                        for mask, det_ in zip(masks, det[:, 5]):
+                            if names[int(det_)] == 'person':
+                                masked_arr.append(mask)
+                        masked_num = list(map(int, input('남길 사람 번호를 입력해주세요(여러개 입력은 공백으로): ').split(' ')))
+                        if len(masked_num) > 0:
+                            for i, masked_ in enumerate(masked_arr):
+                                if i+1 not in masked_num:
+                                    masked += masked_
+
+                    # save original image to resized image
+                    img = Image.open(source)
+                    source = source if '/' not in source else source.split('/')[1]
+                    source_without_extension = source.split('.')[0]
+                    img_resize = img.resize((masks[0].shape[1], masks[0].shape[0]))
+                    img_resize.save(f'{save_dir}/{source_without_extension}.png')
+
+                    tf = T.ToPILImage()
+                    img_t = tf(masked)
+                    img_t.save(f'{save_dir}/{source_without_extension}_mask.png')
+############################################ END ############################################
+
 
             # Stream results
             im0 = annotator.result()
@@ -247,23 +276,23 @@ def run(
                     exit()
 
             # Save results (image with detections)
-            if save_img:
-                if dataset.mode == 'image':
-                    cv2.imwrite(save_path, im0)
-                else:  # 'video' or 'stream'
-                    if vid_path[i] != save_path:  # new video
-                        vid_path[i] = save_path
-                        if isinstance(vid_writer[i], cv2.VideoWriter):
-                            vid_writer[i].release()  # release previous video writer
-                        if vid_cap:  # video
-                            fps = vid_cap.get(cv2.CAP_PROP_FPS)
-                            w = int(vid_cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-                            h = int(vid_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-                        else:  # stream
-                            fps, w, h = 30, im0.shape[1], im0.shape[0]
-                        save_path = str(Path(save_path).with_suffix('.mp4'))  # force *.mp4 suffix on results videos
-                        vid_writer[i] = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
-                    vid_writer[i].write(im0)
+            # if save_img:
+            #     if dataset.mode == 'image':
+            #         cv2.imwrite(save_path, im0)
+            #     else:  # 'video' or 'stream'
+            #         if vid_path[i] != save_path:  # new video
+            #             vid_path[i] = save_path
+            #             if isinstance(vid_writer[i], cv2.VideoWriter):
+            #                 vid_writer[i].release()  # release previous video writer
+            #             if vid_cap:  # video
+            #                 fps = vid_cap.get(cv2.CAP_PROP_FPS)
+            #                 w = int(vid_cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+            #                 h = int(vid_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+            #             else:  # stream
+            #                 fps, w, h = 30, im0.shape[1], im0.shape[0]
+            #             save_path = str(Path(save_path).with_suffix('.mp4'))  # force *.mp4 suffix on results videos
+            #             vid_writer[i] = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
+            #         vid_writer[i].write(im0)
 
         # Print time (inference-only)
         LOGGER.info(f"{s}{'' if len(det) else '(no detections), '}{dt[1].dt * 1E3:.1f}ms")
@@ -280,10 +309,10 @@ def run(
 
 def parse_opt():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--weights', nargs='+', type=str, default=ROOT / 'yolov5s-seg.pt', help='model path(s)')
+    parser.add_argument('--weights', nargs='+', type=str, default=ROOT / 'yolov5x-seg.pt', help='model path(s)')
     parser.add_argument('--source', type=str, default=ROOT / 'data/images', help='file/dir/URL/glob/screen/0(webcam)')
-    parser.add_argument('--data', type=str, default=ROOT / 'data/coco128.yaml', help='(optional) dataset.yaml path')
-    parser.add_argument('--imgsz', '--img', '--img-size', nargs='+', type=int, default=[640], help='inference size h,w')
+    parser.add_argument('--data', type=str, default=ROOT / 'data/coco128-seg-person.yaml', help='(optional) dataset.yaml path')
+    parser.add_argument('--imgsz', '--img', '--img-size', nargs='+', type=int, default=[1280], help='inference size h,w')
     parser.add_argument('--conf-thres', type=float, default=0.25, help='confidence threshold')
     parser.add_argument('--iou-thres', type=float, default=0.45, help='NMS IoU threshold')
     parser.add_argument('--max-det', type=int, default=1000, help='maximum detections per image')
