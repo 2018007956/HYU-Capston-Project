@@ -1,0 +1,17 @@
+Traceback (most recent call last):
+  File "/usr/bin/jupyter", line 11, in <module>
+    load_entry_point('jupyter-core==4.6.3', 'console_scripts', 'jupyter')()
+  File "/usr/lib/python3/dist-packages/jupyter_core/command.py", line 247, in main
+    command = _jupyter_abspath(subcommand)
+  File "/usr/lib/python3/dist-packages/jupyter_core/command.py", line 133, in _jupyter_abspath
+    raise Exception(
+Exception: Jupyter command `jupyter-notebook` not found.
+Traceback (most recent call last):
+  File "/usr/bin/jupyter", line 11, in <module>
+    load_entry_point('jupyter-core==4.6.3', 'console_scripts', 'jupyter')()
+  File "/usr/lib/python3/dist-packages/jupyter_core/command.py", line 247, in main
+    command = _jupyter_abspath(subcommand)
+  File "/usr/lib/python3/dist-packages/jupyter_core/command.py", line 133, in _jupyter_abspath
+    raise Exception(
+Exception: Jupyter command `jupyter-notebook` not found.
+/usr/bin/python: No module named notebook
