@@ -227,7 +227,7 @@ def run(
 
 
                 if len(masks != 0):
-                    masked = torch.zeros([masks[0].shape[0], masks[0].shape[1]])
+                    masked = torch.zeros([masks[0].shape[0], masks[0].shape[1]]).cuda()
 
                     print('1: 제일 큰 사람만 남기고 나머지 다 지우기')
                     print('2: 남길 사람 직접 선택')
