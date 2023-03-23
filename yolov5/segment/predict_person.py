@@ -231,16 +231,18 @@ def run(
 
                     print('1: 제일 큰 사람만 남기고 나머지 다 지우기')
                     print('2: 남길 사람 직접 선택')
+                    print('3: 지울 사람 직접 선택')
                     option_ = int(input('Option: '))
 
+                    # 이미지에서 마스킹 면적이 가장 큰 사람 빼고 다 마스킹하기
                     if option_ == 1:
-                        # 이미지에서 마스킹 면적이 가장 큰 사람 빼고 다 마스킹하기
                         for mask, det_size, det_ in zip(masks, det[:, :4], det[:, 5]):
                             if names[int(det_)] == 'person':
                                 if not abs((det_size[2]-det_size[0])*(det_size[3]-det_size[1]) - det_max) < 5:
                                     masked += mask
+
+                    # 남길 사람 직접 선택
                     elif option_ == 2:
-                        # 남길 사람 직접 선택
                         masked_arr = []
                         for mask, det_ in zip(masks, det[:, 5]):
                             if names[int(det_)] == 'person':
@@ -251,11 +253,42 @@ def run(
                                 if i+1 not in masked_num:
                                     masked += masked_
 
+                    # 지울 사람 직접 선택
+                    elif option_ == 3:
+                        masked_arr = []
+                        box_arr = []
+                        for mask, det_size, det_ in zip(masks, det[:, :4], det[:, 5]):
+                            if names[int(det_)] == 'person':
+                                masked_arr.append(mask)
+                                box_arr.append(det_size)
+                        masked_num = list(map(int, input('지울 사람 번호를 입력해주세요(여러개 입력은 공백으로): ').split(' ')))
+                        if len(masked_num) > 0:
+                            for i, masked_ in enumerate(masked_arr):
+                                if i+1 in masked_num:
+                                    masked = masked_
+                                    masked_box = box_arr[i]
+                                    print(masked_box)
+                            tf = T.ToPILImage()
+                            lux, luy, rdx, rdy = int(masked_box[1]), int(masked_box[0]), int(masked_box[3]), int(masked_box[2])
+
+                            img = Image.open(source)
+                            img_cropped = img.crop((luy, lux, rdy, rdx))
+                            img_cropped.save(f'{save_dir}/cropped_image.jpg')
+
+                            cropped_masked = tf(masked).resize((img.size[0], img.size[1]))
+                            cropped_masked = cropped_masked.crop((luy, lux, rdy, rdx))
+                            cropped_masked.save(f'{save_dir}/cropped_masked.png')
+                            
+                            
+                        else: continue
+                                    
+
                     # save original image to resized image
                     img = Image.open(source)
                     source = source if '/' not in source else source.split('/')[1]
                     source_without_extension = source.split('.')[0]
                     img_resize = img.resize((masks[0].shape[1], masks[0].shape[0]))
+                    print(masks[0].shape[1], masks[0].shape[0])
                     img_resize.save(f'{save_dir}/{source_without_extension}.png')
 
                     tf = T.ToPILImage()
