@@ -85,6 +85,7 @@ def run(
     dnn=False,  # use OpenCV DNN for ONNX inference
     vid_stride=1,  # video frame-rate stride
     retina_masks=False,
+    save_path=ROOT
 ):
     source = str(source)
     save_img = not nosave and not source.endswith('.txt')  # save inference images
@@ -96,7 +97,7 @@ def run(
         source = check_file(source)  # download
 
     # Directories
-    save_dir = increment_path(Path(project) / name, exist_ok=exist_ok)  # increment run
+    save_dir = increment_path(Path(project) / name, exist_ok=exist_ok) if save_path == ROOT else Path(save_path) # increment run
     (save_dir / 'labels' if save_txt else save_dir).mkdir(parents=True, exist_ok=True)  # make dir
 
     # Load model
@@ -161,8 +162,10 @@ def run(
                 
                 # 면적이 가장 큰 바운딩박스 
                 det_size = [int((det_[2]-det_[0])*(det_[3]-det_[1])) for det_, name in zip(det, det[:, 5]) if names[int(name)] == 'person']
-                max_arg = np.argmax(det_size)
-                det_max = det_size[max_arg]
+                
+                if det_size:
+                    max_arg = np.argmax(det_size)
+                    det_max = det_size[max_arg]
 
                 # Segments
                 if save_txt:
@@ -204,7 +207,7 @@ def run(
 
 
 ############################## 사용자가 직접 남길 사람 선택하는 부분 START ##############################
-# python segment/predict_person.py --weights ./weights/yolov5x-seg.pt --source IMG_PATH --conf 0.1 --data data/coco128-seg.yaml
+# python segment/predict_person.py --weights ./weights/yolov5x-seg.pt --source IMG_PATH --conf 0.1 --data data/coco128-seg.yaml --save-path ./experiment1
 
                 # 이부분은 아래에 save_img 부분 복붙한거
                 if save_img:
@@ -229,20 +232,28 @@ def run(
                 if len(masks != 0):
                     masked = torch.zeros([masks[0].shape[0], masks[0].shape[1]]).cuda()
 
-                    print('1: 제일 큰 사람만 남기고 나머지 다 지우기')
-                    print('2: 남길 사람 직접 선택')
-                    print('3: 지울 사람 직접 선택')
+                    print('1: 다 지우기')
+                    print('2: 제일 큰 사람만 남기고 나머지 다 지우기')
+                    print('3: 남길 사람 직접 선택')
+                    print('4: 지울 사람 직접 선택')
                     option_ = int(input('Option: '))
 
-                    # 이미지에서 마스킹 면적이 가장 큰 사람 빼고 다 마스킹하기
+                    # objects_to_remove에 있는 물체 다 없애기
                     if option_ == 1:
+                        for mask, det_size, det_ in zip(masks, det[:, :4], det[:, 5]):
+                            objects_to_remove = ['person', 'skis', 'banana']
+                            if names[int(det_)] in objects_to_remove:
+                                masked += mask
+
+                    # 이미지에서 마스킹 면적이 가장 큰 사람 빼고 다 마스킹하기
+                    if option_ == 2:
                         for mask, det_size, det_ in zip(masks, det[:, :4], det[:, 5]):
                             if names[int(det_)] == 'person':
                                 if not abs((det_size[2]-det_size[0])*(det_size[3]-det_size[1]) - det_max) < 5:
                                     masked += mask
 
                     # 남길 사람 직접 선택
-                    elif option_ == 2:
+                    elif option_ == 3:
                         masked_arr = []
                         for mask, det_ in zip(masks, det[:, 5]):
                             if names[int(det_)] == 'person':
@@ -254,7 +265,7 @@ def run(
                                     masked += masked_
 
                     # 지울 사람 직접 선택
-                    elif option_ == 3:
+                    elif option_ == 4:
                         masked_arr = []
                         box_arr = []
                         for mask, det_size, det_ in zip(masks, det[:, :4], det[:, 5]):
@@ -370,6 +381,7 @@ def parse_opt():
     parser.add_argument('--dnn', action='store_true', help='use OpenCV DNN for ONNX inference')
     parser.add_argument('--vid-stride', type=int, default=1, help='video frame-rate stride')
     parser.add_argument('--retina-masks', action='store_true', help='whether to plot masks in native resolution')
+    parser.add_argument('--save-path', type=str, default=ROOT, help='file saving path')
     opt = parser.parse_args()
     opt.imgsz *= 2 if len(opt.imgsz) == 1 else 1  # expand
     print_args(vars(opt))
