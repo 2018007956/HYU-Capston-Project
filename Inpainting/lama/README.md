@@ -5,8 +5,11 @@
 <p align="center" "font-size:30px;">
   <br>
   <b>
-We reconstructed the image using lama, one of the inpainting models.  When comparing the four inpainting models, lama performed the best.  
-Generate a mask through yolo or user input, and apply dilation to various scales. Put the input images into the lama with the generated masks. A detailed operation method will be described below.</b>
+We reconstructed the image using lama, one of the inpainting models.</br>
+When comparing the four inpainting models, lama performed the best.</br>
+Generate a mask through yolo or user input, and apply dilation to various scales. </br>
+Put the input images into the lama with the generated masks. </br>
+A detailed operation method will be described below.</b>
 </p>
 
 <p align="center">
