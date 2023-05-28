@@ -8,9 +8,16 @@
 We reconstructed the image using lama, one of the inpainting models.  When comparing the four inpainting models, lama performed the best.  
 Generate a mask through yolo or user input, and apply dilation to various scales. Put the input images into the lama with the generated masks. A detailed operation method will be described below.</b>
 </p>
-![result_ski](https://github.com/2018007956/HYU-Capstone-Project/assets/48304130/52fb4064-1bb4-42af-bcac-01171576957d)
-![result_food](https://github.com/2018007956/HYU-Capstone-Project/assets/48304130/650ee66e-72e6-49dd-954d-5eaabc4483b3)
-![result_people](https://github.com/2018007956/HYU-Capstone-Project/assets/48304130/ba0ec29e-e1f8-4458-9120-37d51c64fe1c)
+
+<p align="center">
+  <img src="https://github.com/2018007956/HYU-Capstone-Project/assets/48304130/52fb4064-1bb4-42af-bcac-01171576957d" weight="500">
+</p>
+<p align="center">
+  <img src="https://github.com/2018007956/HYU-Capstone-Project/assets/48304130/650ee66e-72e6-49dd-954d-5eaabc4483b3" height="400">
+</p>
+<p align="center">
+  <img src="https://github.com/2018007956/HYU-Capstone-Project/assets/48304130/ba0ec29e-e1f8-4458-9120-37d51c64fe1c" height="300">
+</p>
 
 
 # Environment setup
