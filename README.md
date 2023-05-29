@@ -7,10 +7,10 @@ by Chaea Kim, Sangjin Lee
 - Duration: 2022.08 ~ 2023.05  
 - Subject: Photo retouching that can remove specific objects
 
-The images below compare the results of different inpainting models: Lama with refinement, Lama w/o refinement, Deepfillv2, GIN
+The images below compare the results of different inpainting models: Lama with refinement, Lama w/o refinement, Deepfillv2, GIN  
 In addition, we compared the results of applying various values ​​of ksize, which is a dilation parameter.
 
-[1] Landscape
+[1] Landscape  
 mask generation: yolov5 (Segmentation class: person, ski)  
 Lama w/ refinement parameter
 ```
