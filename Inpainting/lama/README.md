@@ -26,43 +26,15 @@ A detailed operation method will be described below.</b>
 # Environment setup
 
 Clone the repo:
-`git clone https://github.com/advimman/lama.git`
-
-There are three options of an environment:
-
-1. Python virtualenv:
-
-    ```
-    virtualenv inpenv --python=/usr/bin/python3
-    source inpenv/bin/activate
-    pip install torch==1.8.0 torchvision==0.9.0
-    
-    cd lama
-    pip install -r requirements.txt  <----------!!!!!!!!!
-    ```
-
-2. Conda
-    
-    ```
-    % Install conda for Linux, for other OS download miniconda at https://docs.conda.io/en/latest/miniconda.html
-    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-    bash Miniconda3-latest-Linux-x86_64.sh -b -p $HOME/miniconda
-    $HOME/miniconda/bin/conda init bash
-
-    cd lama
-    conda env create -f conda_env.yml
-    conda activate lama
-    conda install pytorch torchvision torchaudio cudatoolkit=10.2 -c pytorch -y
-    pip install pytorch-lightning==1.2.9
-    ```
- 
-3. Docker: No actions are needed 🎉.
-
-# Inference <a name="prediction"></a>
 ```
+git clone https://github.com/advimman/lama.git
+
 cd lama
 pip install -r requirements.txt 
 ```
+
+# Inference <a name="prediction"></a>
+
 **1. Download pre-trained models**
 
 Install tool for yandex disk link extraction:
@@ -116,11 +88,11 @@ Prepare your data:
     ```
     Python /HYU-CAPSTONE-PROJECT/mask generation/Dilation.py'
     ```
-    You can change the parameter in that file.
+    You can change the parameter ksize (width, height) in that file.
 
 
 **3. Predict with Refinement**
 
-On the host machine:
+Run:
 
     python3 bin/predict.py refine=True model.path=$(pwd)/big-lama indir=$(pwd)/LaMa_test_images outdir=$(pwd)/output
