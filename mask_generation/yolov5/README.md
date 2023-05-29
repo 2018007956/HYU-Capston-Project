@@ -1,4 +1,53 @@
+## YOLOv5 실행
+- 환경설정
+``` shell
+cd mask_generation/yolov5
+
+# anaconda 없으면 설치
+conda create -n yolov5 python=3.8
+conda activate yolov5
+
+pip install -qr requirements.txt
 ```
+
+- 실행할 이미지 파일 옮기기
+```
+Segmentation 진행할 이미지 파일을 HYU-CAPSTON-PROJECT/mask_generation/yolov5 에 옮겨주기
+```
+
+- Segmentation 실행
+``` shell
+# 현재 위치 mask_generation/yolov5
+# Output file path:  mask_generation/yolov5/runs/predict-seg/exp{n}
+python segment/predict_person.py --weights ./weights/yolov5x-seg.pt 
+                                 --source {filename}
+                                 --conf 0.25
+                                 --data data/coco128-seg.yaml
+
+Segmentation 옵션 선택하기:
+1: 모든 사람 다 지우기
+2: 제일 큰 사람만 남기고 나머지 다 지우기
+3: 남길 사람 직접 선택
+4: 지울 사람 직접 선택
+
+1, 2번 선택시 output file에 {기존 filename}_mask.png 형식으로 결과가 나옴
+3, 4번 선택시 output file에 나온 {filename}.jpg 파일을 참고하여 남길 사람 혹은 지울 사람 번호를 입력
+
+최종 mask file: mask_generation/yolov5/runs/predict-seg/exp{n}/{filename}_mask.png 
+```
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- ```
 cd yolov5
 pip install -r requirements.txt
 
@@ -358,7 +407,7 @@ Get started in seconds with our verified environments. Click each icon below for
 We love your input! We want to make contributing to YOLOv5 as easy and transparent as possible. Please see our [Contributing Guide](CONTRIBUTING.md) to get started, and fill out the [YOLOv5 Survey](https://ultralytics.com/survey?utm_source=github&utm_medium=social&utm_campaign=Survey) to send us feedback on your experiences. Thank you to all our contributors!
 
 <!-- SVG image from https://opencollective.com/ultralytics/contributors.svg?width=990 -->
-<a href="https://github.com/ultralytics/yolov5/graphs/contributors"><img src="https://github.com/ultralytics/yolov5/releases/download/v1.0/image-contributors-1280.png" /></a>
+<!-- <a href="https://github.com/ultralytics/yolov5/graphs/contributors"><img src="https://github.com/ultralytics/yolov5/releases/download/v1.0/image-contributors-1280.png" /></a>
 
 ## <div align="center">Contact</div>
 
@@ -389,4 +438,4 @@ For YOLOv5 bugs and feature requests please visit [GitHub Issues](https://github
 </div>
 
 [assets]: https://github.com/ultralytics/yolov5/releases
-[tta]: https://github.com/ultralytics/yolov5/issues/303
+[tta]: https://github.com/ultralytics/yolov5/issues/303 -->
