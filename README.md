@@ -1,4 +1,5 @@
 # HYU-Capston-Project
+
 Research field: Computer Vision  
 Keywords: Object detection, Inpainting
 
@@ -6,6 +7,14 @@ by Chaea Kim, Sangjin Lee
 
 - Duration: 2022.08 ~ 2023.05  
 - Subject: Photo retouching that can remove specific objects
+
+
+
+### How to use
+- [Object detection - YOLOv5](./mask_generation/yolov5/README.md)
+- [Image inpainting - Lama](./Inpainting/lama/README.md)
+
+<br/>
 
 The images below compare the results of different inpainting models: Lama with refinement, Lama w/o refinement, Deepfillv2, GIN  
 In addition, we compared the results of applying various values ​​of ksize, which is a dilation parameter.
